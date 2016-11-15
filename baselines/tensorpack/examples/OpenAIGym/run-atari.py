@@ -71,7 +71,7 @@ def run_submission(cfg, output, nr):
         score = play_one_episode(player, predfunc)
         print("The {0:d}th episodes, Total:".format(k), score)
 
-    # playerenv.gymenv.monitor.close()
+    playerenv.gymenv.monitor.close()
 
 
 def do_submit(output):
@@ -103,3 +103,7 @@ if __name__ == '__main__':
     run_submission(cfg, args.output, args.episode)
     do_submit(args.output)
     # print("\n ************** test ******************\n")
+
+'''
+ENV=Breakout-v0; ./run-atari.py --load ~/AllData/cse891DeepLearningProj/openaimodels/"$ENV".tfmodel --env "$ENV" --episode 100 --output ~/AllData/cse891DeepLearningProj/outputs/"ENV"
+'''

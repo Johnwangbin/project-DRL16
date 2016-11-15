@@ -13,12 +13,13 @@ from tensorflow.python.ops.rnn_cell import BasicLSTMCell
 from common import *
 
 tf.app.flags.DEFINE_string("game", "Breakout-v0", "gym environment name")
-tf.app.flags.DEFINE_string("train_dir", "./models/experiment0/", "gym environment name")
+tf.app.flags.DEFINE_string("train_dir", "/home/linkaixi/AllData/cse891DeepLearningProj/baselineA3C/models/experiment0/", "gym environment name")
+tf.app.flags.DEFINE_string("output_dir", "/home/linkaixi/AllData/cse891DeepLearningProj/baselineA3C/outputs/experiment0/" , "gym environment name")
 tf.app.flags.DEFINE_integer("gpu", 0, "gpu id")
 tf.app.flags.DEFINE_bool("use_lstm", False, "use LSTM layer")
 
 tf.app.flags.DEFINE_integer("t_max", 6, "episode max time step")
-tf.app.flags.DEFINE_integer("t_train", 1e9, "train max time step")
+tf.app.flags.DEFINE_integer("t_train", 3e2, "train max time step")
 tf.app.flags.DEFINE_integer("jobs", 8, "parallel running thread number")
 
 tf.app.flags.DEFINE_integer("frame_skip", 1, "number of frame skip")
@@ -39,6 +40,7 @@ flags = tf.app.flags.FLAGS
 class AtariEnv(object):
     def __init__(self, env, screen_size=(84, 84)):
         self.env = env
+        self.env.monitor.start(flags.output_dir, force=True)
         # constants
         self.screen_size = screen_size
         self.frame_skip = flags.frame_skip
@@ -53,6 +55,9 @@ class AtariEnv(object):
     @property
     def action_dim(self):
         return self.env.action_space.n
+
+    def closemonitor(self):
+        self.env.monitor.close()
 
     def precess_image(self, image):
         image = cv2.cvtColor(cv2.resize(image, self.screen_size), cv2.COLOR_BGR2GRAY)
@@ -269,7 +274,8 @@ class A3CSingleThread(threading.Thread):
         self.thread_id = thread_id
         threading.Thread.__init__(self, name="thread_%d" % thread_id)
         self.env = AtariEnv(gym.make(flags.game))
-        self.master = master
+        # self.env.env.monitor.start(flags.output_dir, force=True)
+        self.master = master  # the main object
         # local network
         if flags.use_lstm:
             self.local_net = A3CLSTMNet(self.env.state_shape, self.env.action_dim, scope="local_net_%d" % thread_id)
@@ -293,6 +299,7 @@ class A3CSingleThread(threading.Thread):
             self.apply_gradients = master.shared_opt.apply_gradients(
                 zip(clip_accum_grads, master.shared_net.get_vars()), global_step=master.global_step)
             self.summary_op = tf.merge_summary(summaries)
+
 
     def sync_network(self, source_net):
         sync_ops = []
@@ -420,11 +427,12 @@ class A3CSingleThread(threading.Thread):
             sess.run(self.apply_gradients)
             flags.train_step += train_step
             # evaluate
-            if loop % 10 == 0 and self.thread_id == 1:
+            if loop % 100 == 0 and self.thread_id == 1:
                 self.test_phase()
             if loop % 1000 and self.thread_id == 1:
                 save_model(self.master.sess, flags.train_dir, self.master.saver, "a3c_model",
                            global_step=self.master.global_step_val)
+        self.env.closemonitor()
 
     def test_phase(self, episode=10, max_step=1e3):
         rewards = []
@@ -453,6 +461,7 @@ class A3CSingleThread(threading.Thread):
 class A3CAtari(object):
     def __init__(self):
         self.env = AtariEnv(gym.make(flags.game))
+
         self.graph = tf.get_default_graph()
         # shared network
         if flags.use_lstm:
@@ -475,6 +484,7 @@ class A3CAtari(object):
         restore_model(self.sess, flags.train_dir, self.saver)
         self.global_step_val = 0
 
+
     def shared_optimizer(self):
         with tf.device("/gpu:%d" % flags.gpu):
             # optimizer
@@ -496,7 +506,7 @@ class A3CAtari(object):
             job.start()
         for job in self.jobs:
             job.join()
-            print "\n************* test ************\n"
+            # print "\n************* test ************\n"
 
     def test_sync(self):
         self.env.reset_env()
@@ -533,6 +543,7 @@ def main(_):
     model = A3CAtari()
 
     model.train()
+    gym.upload(flags.output_dir, api_key='sk_h8fTmecHReihR9ldmfwjftixrqFTkSZ124WFVV1A')
 
 if __name__ == "__main__":
     tf.app.run()
