@@ -1,0 +1,31 @@
+%!TEX root = main.tex
+
+
+Deep reinforcement learning has been attracted widely interests from both
+industry and academia. The reason is that the combination of deep learning and
+reinforcement learning has shown the effectiveness on lots of applications
+and more surprisingly, the good performances can be achieved without extensive
+ problem-specific engineering~\cite{mnih2015human,silver2016mastering}.
+
+In the center of most reinforcement learning algorithms is how the agent interacts
+with the environment. At each step, the agent takes the corresponding \emph{action}
+based on the \emph{observation} and \emph{reward} received, which determine a internal
+agent \emph{state} that is used by reinforcement learning algorithms. The mapping function
+from agent state to an action is designed to maximize the cumulative reward~\cite{sutton1998introduction}. 
+
+Lots of advanced algorithms were proposed to learn the function that project
+state to an action. One track is to formulate an action-value function $Q(s,a;
+\theta)$ and always choose the action gives you the maximum Q-value, which is
+named as value-based model-free reinforcement learning method. In contrast to
+above methods, policy-based model-free methods directly parameterize the
+policy ($\pi(a|s; \theta)$) and update the parameters $\theta$ by performing
+policy gradient. In this project, we will first review the existing techniques in 
+deep reinforcement learning and proposed a method to outperform the state-of-arts 
+on a specific problem, such as Atari 2600 on OpenAI Gym.
+
+
+%% Open AI
+OpenAI Gym~\cite{brockman2016openai} is a toolkit for reinforcement learning
+research. It includes a growing collection of benchmark problems that expose a
+common interface, and a website where people can share their results and
+compare the performance of algorithms.

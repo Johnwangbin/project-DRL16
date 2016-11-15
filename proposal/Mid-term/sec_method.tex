@@ -1,0 +1,10 @@
+%!TEX root = main.tex
+
+In this project, we plan to develop and implement a novel deep reinforcement learning algorithm and compete with other methods on OpenAI Gym. Specifically, we will implement DQN and use it as baseline. Based on its performance, we will conduct a series of analysis and try to improve the baseline.
+%
+DQN adopts a neural network parametrized by $\theta$. The goal is to obtain an optimal estimate of the Q-function by training a model:
+\begin{equation*}
+\theta = \arg\max_\theta Q(s,a;\theta)
+\end{equation*}
+where $s$ stands for a state and $a$ denotes the corresponding action. 
+The evaluation will be performed on the OpenAI Gym.
