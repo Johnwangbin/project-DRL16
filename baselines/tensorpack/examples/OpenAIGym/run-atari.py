@@ -10,6 +10,9 @@ import random
 import argparse
 import six
 import gym
+import os
+parentdir = "/Users/linkaixiang/Dropbox/DRLopenai/baselines/tensorpack/tensorpack"
+os.sys.path.insert(0, parentdir)
 from tensorpack import *
 from tensorpack.RL import *
 
