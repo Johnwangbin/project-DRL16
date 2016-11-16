@@ -8,7 +8,7 @@ instead our first stage is to learning the most advanced algorithms first using 
 available online resources. 
 
 
-\subsection{Baselines}
+\subsection{Environments}
 
 In order to evaluate the algorithm, we conduct our experiments on Atari environment
 provided by OpenAI. The description of Atari environment is as follows:
@@ -37,8 +37,33 @@ illustrated in Fig~\ref{fig:A3C_baselines} (c), trying to destroy the enemies by
 and avoiding the attack from those enemies. 
 \end{enumerate}
 
+\subsection{Baselines}
+
+In this section, we introduce the implementation details of the baselines we used.
+
+% As we introduced in Methodology section, we use two neural network to model policy function
+% and value function, respectively. 
+The structure of policy network is shown as follows:
+\begin{enumerate}
+\item Convolution layer: $(5 \times 5, 32)$ 
+\item Maximum pooling layer: $(2 \times 2) $
+\item Convolution layer: $(5 \times 5, 32)$ 
+\item Maximum pooling layer: $(2 \times 2) $
+\item Convolution layer: $(4 \times 4, 64)$ 
+\item Maximum pooling layer: $(2 \times 2) $
+\item Convolution layer: $(3 \times 3, 64)$ 
+\item Fully connected layer with 512 nodes and PReLU activation function.
+\item Softmax layer to predict the probability over all possible actions.
+\end{enumerate}
+We modified the implementation of A3C from \href{https://github.com/ppwwyyxx/tensorpack}{tensorpack} repository.
+
+
+\subsection{experimental results}
+The experimental results are illustrated in the Fig~\ref{fig:A3C_baselines}. Please also
+see the video animation by clicking the captions under each figures. 
 
 \begin{figure}[h!]
+\label{fig:A3C_baselines}
 \centering
 \begin{tabular}{c}
 \includegraphics[width=0.49\textwidth]{./fig/A3C_Breakout-v0.png} \\
@@ -48,7 +73,6 @@ and avoiding the attack from those enemies.
 \includegraphics[width=0.49\textwidth]{./fig/A3C_Phoenix-v0.png} \\
 (c) \href{https://gym.openai.com/evaluations/eval_Gva8XrEvTQi63KOd5Gyq1Q#reproducibility}{Phoenix-v0} \\
 \end{tabular}
-\label{fig:A3C_baselines}
 \caption{The results of 100 epsiodes on three environments by applying A3C algorithms. By clicking the name of each environment 
 beneath the figures, you will see the video for each game played by trained agent.}
 \end{figure}
