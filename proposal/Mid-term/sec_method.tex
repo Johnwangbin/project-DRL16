@@ -8,3 +8,6 @@ DQN adopts a neural network parametrized by $\theta$. The goal is to obtain an o
 \end{equation*}
 where $s$ stands for a state and $a$ denotes the corresponding action. 
 The evaluation will be performed on the OpenAI Gym.
+
+The algorithm we used here to beat the baseline is the asynchronous advantage actor-critic (A3C) algorithm that proposed by Volodymyr et al.~\cite{mnih2016asynchronous}. It is a value-based model-free reinforcement learning method. This algorithm maintains a policy $\pi (a_{t}|s_{t};\theta)$ and the estimation of the value function $V(s_{t};\theta_{v})$, where $\theta$ and $\theta_{v}$ are the parameter. These two parameters are learned by the take the gradient of $\log \pi (a_{t}|s_{t};\theta) A(s_{t},a_{t};\theta,\theta_{v})$ with respect to $\theta^{\prime}$. The update of $\pi (a_{t}|s_{t};\theta)$ and $V(s_{t};\theta_{v})$ happens either after every $t_{max}$ actions or when a terminal state is reached. Combine with the idea in deep learning, here we use a convolutional neural network that has one softmax output for the policy $\pi (a_{t}|s_{t};\theta)$ and and
+one linear output for the value function $V(s_{t};\theta_{v})$. The algorithm is shown below for completeness.
