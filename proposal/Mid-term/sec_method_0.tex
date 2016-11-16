@@ -1,0 +1,29 @@
+%!TEX root = main.tex
+\subsection{Deep Reinforcement Learning}
+In this project, we plan to develop and implement a novel deep reinforcement learning algorithm and compete with other methods on OpenAI Gym. Specifically, we will implement DQN and use it as baseline. Based on its performance, we will conduct a series of analysis and try to improve the baseline.
+%
+DQN adopts a neural network parametrized by $\theta$. The goal is to obtain an optimal estimate of the Q-function by training a model parameterized by $\theta$:
+\begin{equation*}
+\theta = \arg\max_\theta Q(s,a;\theta)
+\end{equation*}
+where $s$ stands for a state and $a$ denotes the corresponding action.
+There are basically two ways to update $\theta$ in reinforcement learning. The first one is value-based Q-learning where $\theta$ is learned by minimizing a loss function;
+$$
+L_{i}(\theta_{i}) = \mathbb{E}(r+\gamma \max_{a'}Q(s',a';\theta_{i-1})-Q(s,a;\theta_{i})))^2 
+$$
+where $s'$ is the state after $s$ and $a'$ is the action in state $s'$
+The second algorithm is known as Sarsa where the Q-function is updated by minimizing the following loss function:
+$$
+L_{i}(\theta_{i}) = \mathbb{E}(r+\gamma Q(s',a';\theta_{i-1})-Q(s,a;\theta_{i})))^2 
+$$
+Empirically, the above mentioned algorithms are usually not able to converge during updating. There are many reasons this:
+
+\noindent
+\textbf{One-Step Update}. They only consider one step when computing the loss. Using one step leads to slow convergence because many update steps are required to affect the relevant sate action pairs. To overcome this, we can use n-step rewards when updating $\theta$.
+
+\noindent
+\textbf{Data Sequences Correlation}. The training data is sequential and successive data are correlated which may make the optimization fall into local optima. Experience replay is adopted to break the correlations between successive updates.
+
+\noindent
+\textbf{Varying Target}. The target is highly correlated with predicted Q-values and produces oscillation during training. Instead, a technique which fixes the targets for several thousand updates is employed to reduce the correlations.
+
