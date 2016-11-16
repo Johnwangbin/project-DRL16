@@ -44,17 +44,35 @@ In this section, we introduce the implementation details of the baselines we use
 % As we introduced in Methodology section, we use two neural network to model policy function
 % and value function, respectively. 
 The structure of policy network is shown as follows:
-\begin{enumerate}
-\item Convolution layer: $(5 \times 5, 32)$ 
-\item Maximum pooling layer: $(2 \times 2) $
-\item Convolution layer: $(5 \times 5, 32)$ 
-\item Maximum pooling layer: $(2 \times 2) $
-\item Convolution layer: $(4 \times 4, 64)$ 
-\item Maximum pooling layer: $(2 \times 2) $
-\item Convolution layer: $(3 \times 3, 64)$ 
-\item Fully connected layer with 512 nodes and PReLU activation function.
-\item Softmax layer to predict the probability over all possible actions.
-\end{enumerate}
+
+\begin{table}[!ht]
+	\centering
+	\caption{My caption}
+	\label{my-label}
+	\begin{tabular}{c|c|c|c}
+		\textbf{Type} & \textbf{size} & \textbf{\# filters} & \textbf{activation} \\ \hline
+		convolution & $5\times5$ & 32 & Relu \\ 
+		max pooling & $2\times2$ &  &  \\
+		convolution & $5\times5$ & 32 & Relu \\
+		max pooling & $2\times2$ &  &  \\
+		convolution & $4\times4$ & 64 & Relu \\
+		max pooling & $2\times2$ &  &  \\
+		convolution & $3\times3$ & 64 & Relu \\
+		fully connected & 512 &  & PRelu \\
+		softmax &  &  & 
+	\end{tabular}
+\end{table}
+%\begin{enumerate}
+%\item Convolution layer: $(5 \times 5, 32)$ 
+%\item Maximum pooling layer: $(2 \times 2) $
+%\item Convolution layer: $(5 \times 5, 32)$ 
+%\item Maximum pooling layer: $(2 \times 2) $
+%\item Convolution layer: $(4 \times 4, 64)$ 
+%\item Maximum pooling layer: $(2 \times 2) $
+%\item Convolution layer: $(3 \times 3, 64)$ 
+%\item Fully connected layer with 512 nodes and PReLU activation function.
+%\item Softmax layer to predict the probability over all possible actions.
+%\end{enumerate}
 We modified the implementation of A3C from \href{https://github.com/ppwwyyxx/tensorpack}{tensorpack} repository.
 
 
