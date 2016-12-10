@@ -10,6 +10,7 @@
 .DS_Store
 */temp/*
 *.pyc
+.idea/*
 
 ## Intermediate documents:
 *.dvi
