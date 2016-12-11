@@ -9,6 +9,8 @@
 *.fmt
 .DS_Store
 */temp/*
+*/tmp/*
+nohup*
 *.pyc
 .idea/*
 
