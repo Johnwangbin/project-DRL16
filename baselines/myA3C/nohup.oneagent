@@ -1,0 +1,35 @@
+nohup: ignoring input
+Using TensorFlow backend.
+I tensorflow/stream_executor/dso_loader.cc:111] successfully opened CUDA library libcublas.so locally
+I tensorflow/stream_executor/dso_loader.cc:111] successfully opened CUDA library libcudnn.so locally
+I tensorflow/stream_executor/dso_loader.cc:111] successfully opened CUDA library libcufft.so locally
+I tensorflow/stream_executor/dso_loader.cc:111] successfully opened CUDA library libcuda.so.1 locally
+I tensorflow/stream_executor/dso_loader.cc:111] successfully opened CUDA library libcurand.so locally
+
+20161210_22-08
+
+[2016-12-10 22:08:13,567] Making new env: Pong-v0
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:951] Found device 0 with properties: 
+name: Tesla K40c
+major: 3 minor: 5 memoryClockRate (GHz) 0.745
+pciBusID 0000:04:00.0
+Total memory: 11.25GiB
+Free memory: 11.15GiB
+W tensorflow/stream_executor/cuda/cuda_driver.cc:572] creating context when one is currently active; existing: 0x370c790
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:951] Found device 1 with properties: 
+name: NVS 310
+major: 2 minor: 1 memoryClockRate (GHz) 1.046
+pciBusID 0000:03:00.0
+Total memory: 511.19MiB
+Free memory: 345.39MiB
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:855] cannot enable peer access from device ordinal 0 to device ordinal 1
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:855] cannot enable peer access from device ordinal 1 to device ordinal 0
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:972] DMA: 0 1 
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] 0:   Y N 
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] 1:   N Y 
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:1041] Creating TensorFlow device (/gpu:0) -> (device: 0, name: Tesla K40c, pci bus id: 0000:04:00.0)
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:1014] Ignoring visible gpu device (device: 1, name: NVS 310, pci bus id: 0000:03:00.0) with Cuda compute capability 2.1. The minimum required Cuda capability is 3.0.
+number of episode:  1 average iterations 1023.0 time 7.05865216255 epsiode reward:  -21.0
+number of episode:  2 average iterations 1055.5 time 6.25579404831 epsiode reward:  -21.0
+number of episode:  3 average iterations 1042.66666667 time 5.82101297379 epsiode reward:  -21.0
+number of episode:  4 average iterations 1058.0 time 6.32102394104 epsiode reward:  -21.0

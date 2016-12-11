@@ -13,13 +13,17 @@ import random
 import tensorflow as tf
 import gym
 import numpy as np
-
+import os
+import time
+current_time = time.strftime("%Y%m%d_%H-%M")
 flags = tf.app.flags
+tf.app.flags.DEFINE_string('current_time', current_time, '')
 flags.DEFINE_float('gamma', 0.99, 'discount factor')
 flags.DEFINE_integer('anneal_epsilon_timesteps', 1000000, 'Number of timesteps to anneal epsilon.')
 flags.DEFINE_integer('T_max', 1e+8, 'Total number of updates')
-flags.DEFINE_integer('max_episode', 15, 'Total number of updates')
+flags.DEFINE_integer('max_episode', 5000, 'Total number of updates')
 flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
+flags.DEFINE_string('train_dir', './tmp/', 'to store model and results.')
 flags.DEFINE_float('beta_entropy', 0.01, '')  # section 8 of http://arxiv.org/pdf/1602.01783v1.pdf
 tf.app.flags.DEFINE_float("eps", 1e-8, "param of avoiding probability = 0 ")
 FLAGS = flags.FLAGS
@@ -55,35 +59,36 @@ def weight_variable(shape, std=0.1):
 
 def agent_model(shapes, action_types, batch_size):
 
+    with tf.device("/gpu:%d" % 0):
+        state = tf.placeholder(tf.float32, shape=shapes)
 
-    state = tf.placeholder(tf.float32, shape=shapes)
+        # conv1
+        # hconv1 = conv2d(state, weight_variable([3, 3, shapes[-1], 16]), tf.Variable(tf.zeros(16)))
+        # hpool1 = tf.nn.max_pool(hconv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1],padding='SAME')
+        hconv1 = conv2d(state, weight_variable([8, 8, shapes[-1], 16]), tf.Variable(tf.zeros(16)), strides=4)
 
-    # conv1
-    hconv1 = conv2d(state, weight_variable([3,3, shapes[-1], 32]),
-                    tf.Variable(tf.zeros(32)))
-    hpool1 = tf.nn.max_pool(hconv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1],padding='SAME')
+        # conv2
+        hconv2 = conv2d(hconv1, weight_variable([4, 4, 16, 32]), tf.Variable(tf.zeros(32)), strides=2)
+        # hconv2 = conv2d(hpool1, weight_variable([3, 3, 16, 32]), tf.Variable(tf.zeros(32)))
+        # hpool2 = tf.nn.max_pool(hconv2, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
-    # conv2
-    hconv2 = conv2d(hpool1, weight_variable([3,3, 32, 64]), tf.Variable(tf.zeros(64)))
-    hpool2 = tf.nn.max_pool(hconv2, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
+        h_poolf = hconv2
+        pool_shape = h_poolf.get_shape().as_list()
+        h_pool2_flat = tf.reshape(h_poolf,
+                                  [pool_shape[0], pool_shape[1] * pool_shape[2] * pool_shape[3]])
 
-    h_poolf = hpool2
-    pool_shape = h_poolf.get_shape().as_list()
-    h_pool2_flat = tf.reshape(h_poolf,
-                              [pool_shape[0], pool_shape[1] * pool_shape[2] * pool_shape[3]])
+        # fully-connect 1.
+        out_channel_f = 128
+        fc1 = tf.nn.bias_add(tf.matmul(h_pool2_flat,
+                             weight_variable([pool_shape[1] * pool_shape[2] * pool_shape[3], out_channel_f], 1.0/np.sqrt(float(out_channel_f)))),
+                             tf.Variable(tf.zeros(out_channel_f)))
 
-    # fully-connect 1.
-    out_channel_f = 128
-    fc1 = tf.nn.bias_add(tf.matmul(h_pool2_flat,
-                         weight_variable([pool_shape[1] * pool_shape[2] * pool_shape[3], out_channel_f], 1.0/np.sqrt(float(out_channel_f)))),
-                         tf.Variable(tf.zeros(out_channel_f)))
+        logits = tf.nn.bias_add(tf.matmul(fc1, weight_variable([out_channel_f, action_types], 1.0/np.sqrt(float(action_types)))),
+                                tf.Variable(tf.zeros(action_types)))
 
-    logits = tf.nn.bias_add(tf.matmul(fc1, weight_variable([out_channel_f, action_types], 1.0/np.sqrt(float(action_types)))),
-                            tf.Variable(tf.zeros(action_types)))
-
-    Q_network = tf.nn.softmax(logits)
-    Value_net = tf.nn.bias_add(tf.matmul(fc1, weight_variable([out_channel_f, batch_size], 1.0/np.sqrt(float(batch_size)))),
-                               tf.Variable(tf.zeros(batch_size)))
+        Q_network = tf.nn.softmax(logits)
+        Value_net = tf.nn.bias_add(tf.matmul(fc1, weight_variable([out_channel_f, batch_size], 1.0/np.sqrt(float(batch_size)))),
+                                   tf.Variable(tf.zeros(batch_size)))
 
     return Q_network, Value_net, state
 
@@ -114,11 +119,13 @@ def obervation2states(states, batch_size):
     return state_prep
 
 def main(argv):
+    print("\n" + FLAGS.current_time + "\n")
 
     episode_number = 0
-    epsilon = 1
-    T_max = 1000
     env = gym.make("Pong-v0")
+
+    if not os.path.exists(FLAGS.train_dir):
+        os.makedirs(FLAGS.train_dir)
 
 
     init_action = env.action_space.sample() # random walk at beginning
@@ -139,17 +146,19 @@ def main(argv):
 
     # a = state - state_prep[0, :, :, 0] # == 0
     with tf.Graph().as_default():
-
+        start_time = time.time()
         # define graph
         Q_network, Value_net, state_placeholder = agent_model(shapes, len(action_space), batch_size)
         train_op,R_t_placeholder, a_t_placeholder = get_loss(Q_network, Value_net, batch_size, num_actions)
+
+        # saver = tf.train.Saver()
 
         # init variable
         init = tf.initialize_all_variables()
         sess = tf.Session()
         sess.run(init)
 
-
+        episodes_reward_all = []
 
         T = 0
         episode_reward = 0
@@ -202,12 +211,20 @@ def main(argv):
 
             if done:
                 episode_number += 1
-                print "number of episode: ", episode_number, "epsiode reward: ", episode_reward
+                print "number of episode: ", episode_number, "average iterations", float(T)/episode_number, \
+                      "time", time.time() - start_time, "epsiode reward: ", episode_reward
                 episode_reward = 0
+                episodes_reward_all.append(episode_reward)
                 env.reset()
                 init_action = env.action_space.sample()
                 observation, reward, done, info = env.step(init_action)
                 state = prepro(observation)
+                start_time = time.time()
+
+            if (episode_number+1) % 500:
+                checkpoint_file = os.path.join(FLAGS.train_dir, 'checkpoint')
+                # saver.save(sess, checkpoint_file, global_step=episode_number)
+                np.save(FLAGS.train_dir + "results.npy", episodes_reward_all)
 
             if episode_number == FLAGS.max_episode:
                 break
