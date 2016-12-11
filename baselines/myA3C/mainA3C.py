@@ -17,6 +17,8 @@ import numpy as np
 flags = tf.app.flags
 flags.DEFINE_float('gamma', 0.99, 'discount factor')
 flags.DEFINE_integer('anneal_epsilon_timesteps', 1000000, 'Number of timesteps to anneal epsilon.')
+flags.DEFINE_integer('T_max', 1e+8, 'Total number of updates')
+flags.DEFINE_integer('max_episode', 15, 'Total number of updates')
 flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
 flags.DEFINE_float('beta_entropy', 0.01, '')  # section 8 of http://arxiv.org/pdf/1602.01783v1.pdf
 tf.app.flags.DEFINE_float("eps", 1e-8, "param of avoiding probability = 0 ")
@@ -150,8 +152,8 @@ def main(argv):
 
 
         T = 0
-
-        while T < T_max:
+        episode_reward = 0
+        while T < FLAGS.T_max:
             t = 0
             t_start = t
             R_temp = []
@@ -166,28 +168,49 @@ def main(argv):
 
                 R_temp.append(reward_t)
                 actions_temp.append(action_index)
-                state_temp.append(prepro(observation))
+                state_new = prepro(observation)
+                state_temp.append(state_new)
                 t += 1
                 T += 1
-
-                state = prepro(observation)
+                episode_reward += reward_t
+                state = state_new
 
             if done:
                 R_t = 0
             else:
                 R_t = sess.run(Value_net, feed_dict={state_placeholder: np.reshape([state] * batch_size, shapes)})[0][0]
 
-            R_batch = np.zeros(t)
+            R_batch = []
             for i in np.arange(t_start, t)[::-1]:
                 R_t = R_temp[i] + FLAGS.gamma * R_t
-                R_batch[i] = R_t
+                R_batch.append(R_t)
+
+            if done:
+                # make sure state has batch_size
+                len_stats_temp = len(state_temp)
+                if len_stats_temp != batch_size:
+                    diff = batch_size - len_stats_temp
+                    for kk in np.arange(diff):
+                        state_temp.append(state)
+                        actions_temp.append(actions_temp[-1])
+                        R_batch.append(R_batch[-1])
+
 
             sess.run(train_op, feed_dict={state_placeholder: obervation2states(state_temp, batch_size),
-                                          R_t_placeholder: R_batch,
+                                          R_t_placeholder: np.array(R_batch),
                                           a_t_placeholder: actions_temp})
 
+            if done:
+                episode_number += 1
+                print "number of episode: ", episode_number, "epsiode reward: ", episode_reward
+                episode_reward = 0
+                env.reset()
+                init_action = env.action_space.sample()
+                observation, reward, done, info = env.step(init_action)
+                state = prepro(observation)
 
-
+            if episode_number == FLAGS.max_episode:
+                break
 
 if __name__=="__main__":
     tf.app.run()
