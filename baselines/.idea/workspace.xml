@@ -14,20 +14,75 @@
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
   </component>
+  <component name="DockManager">
+    <window id="4">
+      <content type="file-editors">
+        <state>
+          <leaf>
+            <file leaf-file-name="run-atari.py" pinned="false" current-in-tab="false">
+              <entry file="file://$PROJECT_DIR$/tensorpack/examples/OpenAIGym/run-atari.py">
+                <provider selected="true" editor-type-id="text-editor">
+                  <state relative-caret-position="396">
+                    <caret line="29" column="29" selection-start-line="29" selection-start-column="29" selection-end-line="29" selection-end-column="29" />
+                    <folding />
+                  </state>
+                </provider>
+              </entry>
+            </file>
+            <file leaf-file-name="train-atari.py" pinned="false" current-in-tab="true">
+              <entry file="file://$PROJECT_DIR$/tensorpack/examples/OpenAIGym/train-atari.py">
+                <provider selected="true" editor-type-id="text-editor">
+                  <state relative-caret-position="672">
+                    <caret line="196" column="15" selection-start-line="196" selection-start-column="15" selection-end-line="196" selection-end-column="15" />
+                    <folding>
+                      <element signature="e#110#120#0" expanded="true" />
+                    </folding>
+                  </state>
+                </provider>
+              </entry>
+            </file>
+          </leaf>
+        </state>
+      </content>
+    </window>
+  </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FavoritesManager">
     <favorites_list name="baselines" />
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="mainA3C.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="mainA3C.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/myA3C/mainA3C.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="270">
-              <caret line="104" column="19" selection-start-line="104" selection-start-column="18" selection-end-line="104" selection-end-column="19" />
+            <state relative-caret-position="94">
+              <caret line="177" column="20" selection-start-line="177" selection-start-column="20" selection-end-line="177" selection-end-column="20" />
               <folding>
                 <element signature="e#5282#5518#0" expanded="false" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="A3C_atari_2.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/A3C-master/A3C_atari_2.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="590">
+              <caret line="34" column="42" selection-start-line="34" selection-start-column="42" selection-end-line="34" selection-end-column="42" />
+              <folding>
+                <element signature="e#83#92#0" expanded="true" />
+                <element signature="e#1400#2781#0" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="a3c.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/async-rl/a3c.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="612">
+              <caret line="80" column="46" selection-start-line="80" selection-start-column="41" selection-end-line="80" selection-end-column="46" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -66,7 +121,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/A3C-master/A3C_atari_2.py" />
         <option value="$PROJECT_DIR$/deep-asynchronous-RL/main.py" />
         <option value="$PROJECT_DIR$/A3C-master/A3C_atari.py" />
         <option value="$PROJECT_DIR$/tensorpack/examples/OpenAIGym/run-atari.py" />
@@ -80,6 +134,7 @@
         <option value="$PROJECT_DIR$/myA3C/test.py" />
         <option value="$PROJECT_DIR$/pg-pong.py" />
         <option value="$PROJECT_DIR$/myA3C/mainA3C.py" />
+        <option value="$PROJECT_DIR$/A3C-master/A3C_atari_2.py" />
       </list>
     </option>
   </component>
@@ -197,6 +252,20 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="myA3C" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="baselines" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="baselines" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="async-rl" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -512,7 +581,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="34" />
+      <option name="time" value="35" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -713,14 +782,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/A3C-master/A3C_atari_2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-90">
-          <caret line="124" column="48" selection-start-line="124" selection-start-column="39" selection-end-line="124" selection-end-column="48" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/async-rl/a3c_model.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="36">
@@ -749,14 +810,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="342">
           <caret line="38" column="30" selection-start-line="38" selection-start-column="19" selection-end-line="38" selection-end-column="30" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/async-rl/a3c.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2486">
-          <caret line="95" column="17" selection-start-line="95" selection-start-column="17" selection-end-line="95" selection-end-column="17" />
           <folding />
         </state>
       </provider>
@@ -808,16 +861,6 @@
         <state relative-caret-position="310">
           <caret line="1415" column="4" selection-start-line="1415" selection-start-column="4" selection-end-line="1415" selection-end-column="4" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tensorpack/examples/OpenAIGym/run-atari.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="288">
-          <caret line="16" column="27" selection-start-line="16" selection-start-column="27" selection-end-line="16" selection-end-column="27" />
-          <folding>
-            <element signature="e#109#127#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -915,10 +958,26 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/async-rl/a3c.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="612">
+          <caret line="80" column="46" selection-start-line="80" selection-start-column="41" selection-end-line="80" selection-end-column="46" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tensorpack/examples/OpenAIGym/run-atari.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="396">
+          <caret line="29" column="29" selection-start-line="29" selection-start-column="29" selection-end-line="29" selection-end-column="29" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/tensorpack/examples/OpenAIGym/train-atari.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="108">
-          <caret line="120" column="41" selection-start-line="120" selection-start-column="41" selection-end-line="120" selection-end-column="41" />
+        <state relative-caret-position="672">
+          <caret line="196" column="15" selection-start-line="196" selection-start-column="15" selection-end-line="196" selection-end-column="15" />
           <folding>
             <element signature="e#110#120#0" expanded="true" />
           </folding>
@@ -927,10 +986,21 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/myA3C/mainA3C.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="104" column="19" selection-start-line="104" selection-start-column="18" selection-end-line="104" selection-end-column="19" />
+        <state relative-caret-position="94">
+          <caret line="177" column="20" selection-start-line="177" selection-start-column="20" selection-end-line="177" selection-end-column="20" />
           <folding>
             <element signature="e#5282#5518#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/A3C-master/A3C_atari_2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="590">
+          <caret line="34" column="42" selection-start-line="34" selection-start-column="42" selection-end-line="34" selection-end-column="42" />
+          <folding>
+            <element signature="e#83#92#0" expanded="true" />
+            <element signature="e#1400#2781#0" expanded="false" />
           </folding>
         </state>
       </provider>
