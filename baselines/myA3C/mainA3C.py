@@ -21,7 +21,7 @@ tf.app.flags.DEFINE_string('current_time', current_time, '')
 flags.DEFINE_float('gamma', 0.99, 'discount factor')
 flags.DEFINE_integer('anneal_epsilon_timesteps', 1000000, 'Number of timesteps to anneal epsilon.')
 flags.DEFINE_integer('T_max', 1e+8, 'Total number of updates')
-flags.DEFINE_integer('max_episode', 5000, 'Total number of updates')
+flags.DEFINE_integer('max_episode', 6000, 'Total number of updates')
 flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
 flags.DEFINE_string('train_dir', './tmp/', 'to store model and results.')
 flags.DEFINE_float('beta_entropy', 0.01, '')  # section 8 of http://arxiv.org/pdf/1602.01783v1.pdf
@@ -60,6 +60,7 @@ def weight_variable(shape, std=0.1):
 def agent_model(shapes, action_types, batch_size):
 
     with tf.device("/gpu:%d" % 0):
+    # with tf.device("/cpu:%d" % 0):
         state = tf.placeholder(tf.float32, shape=shapes)
 
         # conv1
@@ -87,28 +88,30 @@ def agent_model(shapes, action_types, batch_size):
                                 tf.Variable(tf.zeros(action_types)))
 
         Q_network = tf.nn.softmax(logits)
-        Value_net = tf.nn.bias_add(tf.matmul(fc1, weight_variable([out_channel_f, batch_size], 1.0/np.sqrt(float(batch_size)))),
-                                   tf.Variable(tf.zeros(batch_size)))
+        Value_net = tf.nn.bias_add(tf.matmul(fc1, weight_variable([out_channel_f, 1], 1.0)),
+                                   tf.Variable(tf.zeros(1)))
 
     return Q_network, Value_net, state
 
 def get_loss(Q_network, Value_net, batch_size, num_actions):
 
     optimizer = tf.train.AdamOptimizer(FLAGS.learning_rate)
-    R_t_placeholder = tf.placeholder("float", [batch_size])
+    R_t_placeholder = tf.placeholder("float", [batch_size, 1])
     a_t_placeholder = tf.placeholder(tf.int32, [batch_size])
-    log_prob = tf.log(tf.reduce_sum(tf.mul(Q_network, tf.one_hot(a_t_placeholder,  depth=num_actions)), reduction_indices=1))
+    log_prob = tf.reshape(tf.reduce_sum(tf.log(Q_network + FLAGS.eps) *
+                                        tf.reshape(tf.one_hot(a_t_placeholder,  depth=num_actions), [batch_size, num_actions])
+                                        , reduction_indices=1), [batch_size, 1])
+    #todo ?
+    policy_loss = - log_prob * (R_t_placeholder - Value_net) #
+    value_loss = tf.nn.l2_loss(R_t_placeholder - Value_net)
 
-    policy_loss = - log_prob * (R_t_placeholder - Value_net)
-    value_loss = tf.reduce_mean(tf.square(R_t_placeholder - Value_net))
+    entropy = tf.reshape(-tf.reduce_sum(Q_network * tf.log(Q_network + FLAGS.eps), reduction_indices=1), [batch_size, 1])  # entropy regularization
 
-    entropy = - tf.reduce_sum(Q_network * tf.log(Q_network + FLAGS.eps))  # entropy regularization
-
-    total_loss = policy_loss + (0.5 * value_loss) + FLAGS.beta_entropy * entropy
+    total_loss = tf.reduce_sum(policy_loss + value_loss + FLAGS.beta_entropy * entropy, reduction_indices=0)
 
     train_op = optimizer.minimize(total_loss)
 
-    return train_op, R_t_placeholder, a_t_placeholder
+    return train_op, R_t_placeholder, a_t_placeholder, total_loss #, value_loss, policy_loss, entropy
 
 def obervation2states(states, batch_size):
     # state = prepro(observation) #pong: overvation: 210x160x3 -> state: 80x80
@@ -120,7 +123,7 @@ def obervation2states(states, batch_size):
 
 def main(argv):
     print("\n" + FLAGS.current_time + "\n")
-
+    # env.monitor.start('./results/Pong-experiment-1') # record results for uploading
     episode_number = 0
     env = gym.make("Pong-v0")
 
@@ -135,10 +138,11 @@ def main(argv):
     observation, reward, done, info = env.step(init_action)
 
 
-    t_max = 2
+    t_max = 5
     batch_size = t_max
 
     inchannel = 1
+    running_reward = None
     state = prepro(observation)  # pong: overvation: 210x160x3 -> state: 80x80
     shapes = (batch_size, state.shape[0], state.shape[1], inchannel)
     # state_prep = np.reshape(state, shapes)
@@ -149,9 +153,9 @@ def main(argv):
         start_time = time.time()
         # define graph
         Q_network, Value_net, state_placeholder = agent_model(shapes, len(action_space), batch_size)
-        train_op,R_t_placeholder, a_t_placeholder = get_loss(Q_network, Value_net, batch_size, num_actions)
+        train_op, R_t_placeholder, a_t_placeholder, total_loss = get_loss(Q_network, Value_net, batch_size, num_actions)
 
-        # saver = tf.train.Saver()
+        saver = tf.train.Saver()
 
         # init variable
         init = tf.initialize_all_variables()
@@ -170,24 +174,28 @@ def main(argv):
             state_temp = []
 
             while not (done or (t - t_start == t_max)):
-                Q_prop = sess.run(Q_network, feed_dict={state_placeholder: np.reshape([state] * batch_size, shapes)})[0]
-                action_index = np.argmax(Q_prop[0])  # first batch
+
+                Q_prop = sess.run(Q_network, feed_dict={state_placeholder: np.reshape([state] * batch_size, shapes)})
+                action_index = np.argmax(Q_prop[-1])
 
                 observation_t, reward_t, done, info = env.step(action_index)
 
                 R_temp.append(reward_t)
                 actions_temp.append(action_index)
+                state_temp.append(state)
                 state_new = prepro(observation)
-                state_temp.append(state_new)
+
                 t += 1
                 T += 1
                 episode_reward += reward_t
-                state = state_new
+                state = state_new - state
+                # print np.sum(state_new[:])
 
             if done:
                 R_t = 0
             else:
-                R_t = sess.run(Value_net, feed_dict={state_placeholder: np.reshape([state] * batch_size, shapes)})[0][0]
+                R_t_temp = sess.run(Value_net, feed_dict={state_placeholder: np.reshape([state] * batch_size, shapes)})
+                R_t = R_t_temp[-1]
 
             R_batch = []
             for i in np.arange(t_start, t)[::-1]:
@@ -205,14 +213,18 @@ def main(argv):
                         R_batch.append(R_batch[-1])
 
 
-            sess.run(train_op, feed_dict={state_placeholder: obervation2states(state_temp, batch_size),
-                                          R_t_placeholder: np.array(R_batch),
+            _, lossval = sess.run([train_op, total_loss], feed_dict={state_placeholder: obervation2states(state_temp, batch_size),
+                                          R_t_placeholder: np.reshape(np.array(R_batch), [batch_size,1]),
                                           a_t_placeholder: actions_temp})
+
+
 
             if done:
                 episode_number += 1
-                print "number of episode: ", episode_number, "average iterations", float(T)/episode_number, \
-                      "time", time.time() - start_time, "epsiode reward: ", episode_reward
+
+                running_reward = episode_reward if running_reward is None else running_reward * 0.99 + episode_reward * 0.01
+                print "number of episode: ", episode_number, "loss", lossval[0], "average iterations", float(T)/episode_number, \
+                      "time", time.time() - start_time, "epsiode reward: ", episode_reward, "running mean: ", running_reward
                 episode_reward = 0
                 episodes_reward_all.append(episode_reward)
                 env.reset()
@@ -221,13 +233,15 @@ def main(argv):
                 state = prepro(observation)
                 start_time = time.time()
 
-            if (episode_number+1) % 500:
+            if (episode_number+1) % 500 == 0:
                 checkpoint_file = os.path.join(FLAGS.train_dir, 'checkpoint')
-                # saver.save(sess, checkpoint_file, global_step=episode_number)
+                saver.save(sess, checkpoint_file, global_step=episode_number)
                 np.save(FLAGS.train_dir + "results.npy", episodes_reward_all)
 
             if episode_number == FLAGS.max_episode:
                 break
+
+    # env.monitor.close() # record results for uploading.
 
 if __name__=="__main__":
     tf.app.run()
