@@ -119,6 +119,17 @@ def obervation2states(states, batch_size):
 
     return state_prep
 
+class a3cSingleThread:
+
+    def __init__(self, thread_id, master): # master is the instance of target net, contain shared net
+        self.localnet = master.sharednet
+        self.master = master
+
+
+    def run(self):
+        self.sess = self.master.sess
+
+
 def main(argv):
     print("\n" + FLAGS.current_time + "\n")
     # env.monitor.start('./results/Pong-experiment-1') # record results for uploading

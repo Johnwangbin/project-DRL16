@@ -20,7 +20,7 @@ flags = tf.app.flags
 
 flags.DEFINE_string('experiment', 'dqn_breakout', 'Name of the current experiment')
 flags.DEFINE_string('game', 'Breakout-v0', 'Name of the atari game to play. Full list here: https://gym.openai.com/envs#atari')
-flags.DEFINE_integer('num_concurrent', 2, 'Number of concurrent actor-learner threads to use during training.')
+flags.DEFINE_integer('num_concurrent', 8, 'Number of concurrent actor-learner threads to use during training.')
 flags.DEFINE_integer('tmax', 80000000, 'Number of training timesteps.')
 flags.DEFINE_integer('resized_width', 84, 'Scale screen to this width.')
 flags.DEFINE_integer('resized_height', 84, 'Scale screen to this height.')
@@ -300,17 +300,17 @@ def evaluation(session, graph_ops, saver):
     monitor_env.monitor.close()
 
 def main(_):
-  g = tf.Graph()
-  with g.as_default(), tf.Session() as session:
-    K.set_session(session)
-    num_actions = get_num_actions()
-    graph_ops = build_graph(num_actions)
-    saver = tf.train.Saver()
+    g = tf.Graph()
+    with g.as_default(), tf.Session() as session:
+        K.set_session(session)
+        num_actions = get_num_actions()
+        graph_ops = build_graph(num_actions)
+        saver = tf.train.Saver()
 
-    if FLAGS.testing: # lkx
-        evaluation(session, graph_ops, saver)
-    else:
-        train(session, graph_ops, num_actions, saver)
+        if FLAGS.testing: # lkx
+            evaluation(session, graph_ops, saver)
+        else:
+            train(session, graph_ops, num_actions, saver)
 
 if __name__ == "__main__":
   tf.app.run()

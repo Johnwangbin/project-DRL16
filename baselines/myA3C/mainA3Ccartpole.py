@@ -14,14 +14,14 @@ tf.app.flags.DEFINE_string('current_time', current_time, '')
 flags.DEFINE_float('gamma', 0.99, 'discount factor')
 flags.DEFINE_integer('anneal_epsilon_timesteps', 1000000, 'Number of timesteps to anneal epsilon.')
 flags.DEFINE_integer('T_max', 1e+8, 'Total number of updates')
-flags.DEFINE_integer('max_episode', 2000, 'Total number of updates')
+flags.DEFINE_integer('max_episode', 50000, 'Total number of updates')
 flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
 flags.DEFINE_string('train_dir', './tmp/' + current_time + "/", 'to store model and results.')
 flags.DEFINE_string('results_dir', './tmp/', 'to store model and results.')
 flags.DEFINE_float('beta_entropy', 0.01, '')  # section 8 of http://arxiv.org/pdf/1602.01783v1.pdf
 tf.app.flags.DEFINE_float("eps", 1e-8, "param of avoiding probability = 0 ")
-tf.app.flags.DEFINE_string("device", "/gpu:%d" % 0, "with gpu")
-# tf.app.flags.DEFINE_string("device", "/cpu:%d" % 0, "with cpu")
+# tf.app.flags.DEFINE_string("device", "/gpu:%d" % 0, "with gpu")
+tf.app.flags.DEFINE_string("device", "/cpu:%d" % 0, "with cpu")
 FLAGS = flags.FLAGS
 
 
@@ -64,20 +64,18 @@ def agent_model(shapes, action_types):
         # conv1
         # hconv1 = conv2d(state, weight_variable([3, 3, shapes[-1], 16]), tf.Variable(tf.zeros(16)))
         # hpool1 = tf.nn.max_pool(hconv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1],padding='SAME')
-        hconv1 = conv2d(state, weight_variable([8, 8, shapes[-1], 16]), tf.Variable(tf.zeros(16)), strides=4)
+        # hconv1 = conv2d(state, weight_variable([2, 1, shapes[-1], 16]), tf.Variable(tf.zeros(16)), strides=4)
 
-        # conv2
-        hconv2 = conv2d(hconv1, weight_variable([4, 4, 16, 32]), tf.Variable(tf.zeros(32)), strides=2)
         # hconv2 = conv2d(hpool1, weight_variable([3, 3, 16, 32]), tf.Variable(tf.zeros(32)))
         # hpool2 = tf.nn.max_pool(hconv2, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
-        h_poolf = hconv2
+        h_poolf = state
         pool_shape = h_poolf.get_shape().as_list()
         h_pool2_flat = tf.reshape(h_poolf,
                                   [-1, pool_shape[1] * pool_shape[2] * pool_shape[3]])
 
         # fully-connect 1.
-        out_channel_f = 128
+        out_channel_f = 64
         fc1 = tf.nn.bias_add(tf.matmul(h_pool2_flat,
                              weight_variable([pool_shape[1] * pool_shape[2] * pool_shape[3], out_channel_f], 1.0/np.sqrt(float(out_channel_f)))),
                              tf.Variable(tf.zeros(out_channel_f)))
@@ -96,16 +94,19 @@ def get_loss(Q_network, Value_net, num_actions):
     optimizer = tf.train.AdamOptimizer(FLAGS.learning_rate)
     R_t_placeholder = tf.placeholder("float", [None, 1])
     a_t_placeholder = tf.placeholder(tf.int32, [None])
-    log_prob = tf.reshape(tf.reduce_sum(tf.log(Q_network + FLAGS.eps) *
+    log_prob = - tf.reshape(tf.reduce_sum(tf.log(Q_network + FLAGS.eps) *
                                         tf.reshape(tf.one_hot(a_t_placeholder,  depth=num_actions), [-1, num_actions])
                                         , reduction_indices=1), [-1, 1]) ## -1 can also be used to infer the shape
-    #todo ?
-    policy_loss = - log_prob * (R_t_placeholder - Value_net) #
+
+    entropy = tf.reshape(-tf.reduce_sum(Q_network * tf.log(Q_network + FLAGS.eps), reduction_indices=1),
+                         [-1, 1])  # entropy regularization
+
+    policy_loss = log_prob * (R_t_placeholder - Value_net) + FLAGS.beta_entropy * entropy #
     value_loss = tf.nn.l2_loss(R_t_placeholder - Value_net)
 
-    entropy = tf.reshape(-tf.reduce_sum(Q_network * tf.log(Q_network + FLAGS.eps), reduction_indices=1), [-1, 1])  # entropy regularization
 
-    total_loss = tf.reduce_sum(policy_loss + value_loss + FLAGS.beta_entropy * entropy, reduction_indices=0)
+
+    total_loss = tf.reduce_sum(policy_loss + 0.5 * value_loss, reduction_indices=0)
 
     train_op = optimizer.minimize(total_loss)
 
@@ -114,21 +115,22 @@ def get_loss(Q_network, Value_net, num_actions):
 def obervation2states(states, batch_size):
     # state = prepro(observation) #pong: overvation: 210x160x3 -> state: 80x80
     inchannel = 1
-    shapes = (batch_size, states[0].shape[0], states[0].shape[1], inchannel)
+    shapes = (batch_size, states[0].shape[0], 1, inchannel)
     state_prep = np.reshape(states, shapes)
 
     return state_prep
 
 def main(argv):
     print("\n" + FLAGS.current_time + "\n")
-    # env.monitor.start('./results/Pong-experiment-1') # record results for uploading
+
     episode_number = 0
-    env = gym.make("Pong-v0")
+    env = gym.make("CartPole-v0")
+    # env.monitor.start('./results/Pong-experiment-2')  # record results for uploading
 
     if not os.path.exists(FLAGS.train_dir):
         os.makedirs(FLAGS.train_dir)
 
-
+    env.reset()
     init_action = env.action_space.sample() # random walk at beginning
     num_actions = env.action_space.n
     action_space = list(range(num_actions))  # action space = Discrete(n) = [0,1,2,...n-1]
@@ -136,13 +138,13 @@ def main(argv):
     observation, reward, done, info = env.step(init_action)
 
 
-    t_max = 5
-    batch_size = t_max
+    t_max = 50
+
 
     inchannel = 1
     running_reward = None
-    state = prepro(observation)  # pong: overvation: 210x160x3 -> state: 80x80
-    shapes = (None, state.shape[0], state.shape[1], inchannel)
+    state = np.array(observation)  # pong: overvation: 210x160x3 -> state: 80x80
+    shapes = (None, state.shape[0], 1, inchannel)
     # state_prep = np.reshape(state, shapes)
 
 
@@ -161,8 +163,9 @@ def main(argv):
         sess.run(init)
 
         episodes_reward_all = []
+        running_reward_all = []
 
-        ckpt_file = FLAGS.results_dir + 'checkpoint-999'
+        ckpt_file = FLAGS.results_dir + 'NA'
         if os.path.exists(ckpt_file):
             print("\n model loaded\n")
             saver.restore(sess, ckpt_file)
@@ -188,7 +191,7 @@ def main(argv):
                 R_temp.append(reward_t)
                 actions_temp.append(action_index)
                 state_temp.append(state)
-                state_new = prepro(observation)
+                state_new = np.array(observation)
 
                 t += 1
                 T += 1
@@ -217,29 +220,35 @@ def main(argv):
                 episode_number += 1
 
                 running_reward = episode_reward if running_reward is None else running_reward * 0.99 + episode_reward * 0.01
-                print "number of episode: ", episode_number, "loss", lossval[0], "average iterations", float(T)/episode_number, \
-                      "time", time.time() - start_time, "epsiode reward: ", episode_reward, "running mean: ", running_reward
+
                 episodes_reward_all.append(episode_reward)
-                episode_reward = 0
+                running_reward_all.append(running_reward)
 
                 env.reset()
                 init_action = env.action_space.sample()
                 observation, reward, done, info = env.step(init_action)
-                state = prepro(observation)
+                state = np.array(observation)
                 start_time = time.time()
+                if episode_number % 100 == 0:
+                    print "number of episode: ", episode_number, "loss", lossval[0], "average iterations", float(T)/episode_number, \
+                      "time", time.time() - start_time, "epsiode reward: ", episode_reward, "running mean: ", running_reward
 
-            if (episode_number+1) % 1000 == 0:
+                episode_reward = 0
+
+            if (episode_number+1) % 100 == 0:
                 checkpoint_file = os.path.join(FLAGS.train_dir, 'checkpoint')
                 saver.save(sess, checkpoint_file, global_step=episode_number)
-                np.save(FLAGS.train_dir + "results.npy", episodes_reward_all)
+                np.save(FLAGS.train_dir + "results.npy", tuple([episodes_reward_all,running_reward_all]))
+                fig = plt.figure(3)
+                plt.plot(episodes_reward_all, 'g--', label='rewards')
+                plt.plot(running_reward_all, 'o', label='rewards')
+                plt.savefig(FLAGS.train_dir + FLAGS.current_time + "rewardsplot" + '.png')
+                plt.close(fig)
 
             if episode_number == FLAGS.max_episode:
                 break
 
-        fig = plt.figure(3)
-        plt.plot(episodes_reward_all, 'g--', label='rewards')
-        plt.savefig(FLAGS.train_dir + FLAGS.current_time + "rewardsplot" + '.png')
-        plt.close(fig)
+
 
     # env.monitor.close() # record results for uploading.
 

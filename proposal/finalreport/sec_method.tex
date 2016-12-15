@@ -10,14 +10,44 @@ The objective function:
 \min_{\theta}\sum_{t=1}^N R_t (-\sum_{i=1}^{n}\textbf{I}(a_i, a_t)\log(\pi(a_i|s_t; \theta))
 \end{split}
 \end{equation*}
-where $N$ is thte number of time step in one episode, $n$ is the number of actions
+where $N$ is the number of time step in one episode, $n$ is the number of actions
 in action space, $\textbf{I}(x, y)$ is an indicator function defined as $\textbf{I}(x, y) = 1 \text{ if } x==y \text{ else } 0$.
 
-The derive of objective function:
+The architecture of policy gradient. 
 
-\begin{equation}
-\begin{split}
-& \max_{\theta} \textbf{E}_a(R(a)) \text{ maximize the expectation of rewards over actions} \\
-& \max_{\theta} \sum_a p(a|s; \theta)R(a)
-\end{split}
-\end{equation}
+\begin{figure}[h!]
+\label{fig:pg_picture}
+\centering
+\includegraphics[width=0.49\textwidth]{./fig/policygradient.pdf} \\
+\caption{The architecture of policy gradient, using Pong game as an example.}
+\end{figure}
+
+
+The algorithm of policy gradient:
+
+\begin{algorithm}[H]
+\begin{algorithmic}[1]
+\STATE Xavier initialization: Initialize the weight parameters
+\WHILE{$i=1$ to $N$}
+\STATE Preprocessing 
+\STATE Policy forward
+\STATE Sample action, receive reward
+\STATE Policy gradient
+\IF{Finish one batch:} 
+\STATE Rmsprop/Adam optimizer update
+\ENDIF
+\ENDWHILE
+\end{algorithmic}
+\caption{pseudocode for Policy Gradient }
+\label{alg:pseudocode Pong}
+\end{algorithm}
+
+% The derive of objective function:
+
+% \begin{equation}
+% \begin{split}
+% & \max_{\theta} \textbf{E}_a(R(a))  \\
+% & \max_{\theta} \sum_a p(a|s; \theta)R(a)
+% \end{split}
+% \end{equation}
+% maximize the expectation of rewards over actions

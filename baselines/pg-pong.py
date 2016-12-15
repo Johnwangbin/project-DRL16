@@ -146,7 +146,7 @@ while True:
                 model[k] += learning_rate * g / (np.sqrt(rmsprop_cache[k]) + 1e-5)
                 grad_buffer[k] = np.zeros_like(v)  # reset batch gradient buffer
 
-        # boring book-keeping  1. running_reward: average reward from beginning until now.
+        # boring book-keeping  1. episode_reward: average reward from beginning until now.
         running_reward = reward_sum if running_reward is None else running_reward * 0.99 + reward_sum * 0.01
         print 'resetting env. episode reward total was %f. running mean: %f' % (reward_sum, running_reward)
         if episode_number % 100 == 0:

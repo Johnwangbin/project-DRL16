@@ -116,7 +116,7 @@ def actor_learner_thread(num, env, session, graph_ops, summary_ops, saver):
         t = 0
         t_start = t
 
-        while not (terminal or ((t - t_start)  == t_max)):
+        while not (terminal or ((t - t_start) == t_max)):
             # Perform action a_t according to policy pi(a_t | s_t)
             probs = session.run(p_network, feed_dict={s: [s_t]})[0]
             action_index = sample_policy_action(ACTIONS, probs)

@@ -14,7 +14,7 @@ import tensorflow as tf
 
 
 class NetTools(object):
-    @staticmethod
+    @staticmethod  # behave like a plain function except you can call them from a instance
     def get_variable(name, shape, initializer):
         var = tf.get_variable(name, shape, initializer=initializer)
         return var

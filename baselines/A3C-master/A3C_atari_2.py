@@ -19,8 +19,8 @@ tf.app.flags.DEFINE_integer("gpu", 0, "gpu id")
 tf.app.flags.DEFINE_bool("use_lstm", False, "use LSTM layer")
 
 tf.app.flags.DEFINE_integer("t_max", 6, "episode max time step")
-tf.app.flags.DEFINE_integer("t_train", 1e3, "train max time step")
-tf.app.flags.DEFINE_integer("jobs", 8, "parallel running thread number")
+tf.app.flags.DEFINE_integer("t_train", 50, "train max time step")
+tf.app.flags.DEFINE_integer("jobs", 1, "parallel running thread number")
 
 tf.app.flags.DEFINE_integer("frame_skip", 1, "number of frame skip")
 tf.app.flags.DEFINE_integer("frame_seq", 4, "number of frame sequence")
@@ -32,9 +32,13 @@ tf.app.flags.DEFINE_float("eps", 1e-8, "param of smooth")
 tf.app.flags.DEFINE_float("entropy_beta", 1e-2, "param of policy entropy weight")
 tf.app.flags.DEFINE_float("gamma", 0.95, "discounted ratio")
 
-tf.app.flags.DEFINE_float("train_step", 10, "train step. unchanged")
+
+tf.app.flags.DEFINE_float("train_step", 0, "train step. unchanged")
 
 flags = tf.app.flags.FLAGS
+
+tf.app.flags.DEFINE_string("device", "/gpu:%d" % flags.gpu, "with gpu")
+# tf.app.flags.DEFINE_string("device", "/cpu:%d" % flags.gpu, "with cpu")
 
 
 class AtariEnv(object):
@@ -82,7 +86,7 @@ class AtariEnv(object):
 
 class A3CNet(object):
     def __init__(self, state_shape, action_dim, scope):
-        with tf.device("/gpu:%d" % flags.gpu):
+        with tf.device(flags.device):
             # placeholder
             with tf.variable_scope("%s_holder" % scope):
                 self.state = tf.placeholder(tf.float32, shape=[None] + list(state_shape),
@@ -149,6 +153,7 @@ class A3CSingleThread(threading.Thread):
         self.master = master
         # local network
         self.local_net = A3CNet(self.env.state_shape, self.env.action_dim, scope="local_net_%d" % thread_id)
+        print "test run 1"
 
         # sync network
         self.sync = self.sync_network(master.shared_net)
@@ -163,15 +168,15 @@ class A3CSingleThread(threading.Thread):
         summaries.append(tf.scalar_summary("value_loss/%d" % self.thread_id, self.local_net.value_loss))
         summaries.append(tf.scalar_summary("shared_loss/%d" % self.thread_id, self.local_net.shared_loss))
         # apply accumulated gradients
-        with tf.device("/gpu:%d" % flags.gpu):
+        with tf.device(flags.device):
             clip_accum_grads = [tf.clip_by_value(grad, -flags.grad_clip, flags.grad_clip) for grad in self.accum_grads]
             self.apply_gradients = master.shared_opt.apply_gradients(
                 zip(clip_accum_grads, master.shared_net.get_vars()), global_step=master.global_step)
             self.summary_op = tf.merge_summary(summaries)
 
-    def sync_network(self, source_net):
+    def sync_network(self, source_net):  # update value from shared net to local net
         sync_ops = []
-        with tf.device("/gpu:%d" % flags.gpu):
+        with tf.device(flags.device):
             with tf.op_scope([], name="sync_ops_%d" % self.thread_id):
                 for (target_var, source_var) in zip(self.local_net.get_vars(), source_net.get_vars()):
                     ops = tf.assign(target_var, source_var)
@@ -180,7 +185,7 @@ class A3CSingleThread(threading.Thread):
 
     def create_accumulate_gradients(self):
         accum_grads = []
-        with tf.device("/gpu:%d" % flags.gpu):
+        with tf.device(flags.device):
             with tf.op_scope([self.local_net], name="create_accum_%d" % self.thread_id):
                 for var in self.local_net.get_vars():
                     zero = tf.zeros(var.get_shape().as_list(), dtype=var.dtype)
@@ -192,7 +197,7 @@ class A3CSingleThread(threading.Thread):
     def do_accumulate_gradients(self):
         net = self.local_net
         accum_grad_ops = []
-        with tf.device("/gpu:%d" % flags.gpu):
+        with tf.device(flags.device):
             with tf.op_scope([], name="accum_ops_%d" % self.thread_id):
                 grads = net.shared_grads + net.policy_grads + net.value_grads
                 for (grad, var, accum_grad) in zip(grads, net.get_vars(), self.accum_grads):
@@ -204,7 +209,7 @@ class A3CSingleThread(threading.Thread):
     def reset_accumulate_gradients(self):
         net = self.local_net
         reset_grad_ops = []
-        with tf.device("/gpu:%d" % flags.gpu):
+        with tf.device(flags.device):
             with tf.op_scope([net], name="reset_grad_ops_%d" % self.thread_id):
                 for (var, accum_grad) in zip(net.get_vars(), self.accum_grads):
                     zero = tf.zeros(var.get_shape().as_list(), dtype=var.dtype)
@@ -246,6 +251,7 @@ class A3CSingleThread(threading.Thread):
         return scipy.signal.lfilter([1], [1, -flags.gamma], x[::-1], axis=0)[::-1]
 
     def run(self):
+        running_reward = None
         sess = self.master.sess
         self.env.reset_env()
         loop = 0
@@ -257,13 +263,11 @@ class A3CSingleThread(threading.Thread):
             # sync variables
             sess.run(self.sync)
             # forward explore
-            train_step, rollout_path = self.forward_explore(train_step)
+            train_step, rollout_path = self.forward_explore(train_step)  # forward play
             # rollout for discounted R values
             if rollout_path["done"][-1]:
                 rollout_path["rewards"][-1] = 0
                 self.env.reset_env()
-                # if flags.use_lstm:
-                #     self.local_net.reset_lstm_state()
             else:
                 rollout_path["rewards"][-1] = self.local_net.get_value(sess, rollout_path["state"][-1])
             rollout_path["returns"] = self.discount(rollout_path["rewards"])
@@ -272,13 +276,7 @@ class A3CSingleThread(threading.Thread):
             fetches = [self.do_accum_grads_ops, self.master.global_step]
             if loop % 10 == 0:
                 fetches.append(self.summary_op)
-            # if flags.use_lstm:
-            #     res = sess.run(fetches, feed_dict={lc_net.state: rollout_path["state"],
-            #                                        lc_net.action: rollout_path["action"],
-            #                                        lc_net.target_q: rollout_path["returns"],
-            #                                        lc_net.initial_lstm_state: lc_net.lstm_state_out,
-            #                                        lc_net.sequence_length: [1]})
-            # else:
+
             res = sess.run(fetches, feed_dict={lc_net.state: rollout_path["state"],
                                                    lc_net.action: rollout_path["action"],
                                                    lc_net.target_q: rollout_path["returns"]})
@@ -289,12 +287,23 @@ class A3CSingleThread(threading.Thread):
             # async update grads to global network
             sess.run(self.apply_gradients)
             flags.train_step += train_step
-            # evaluate
-            if loop % 10 == 0 and self.thread_id == 1:
-                self.test_phase()
-            if loop % 1000 == 0 and self.thread_id == 1:
+
+
+            print rollout_path["done"][-1]
+            episode_reward = np.sum(rollout_path["rewards"])
+            print episode_reward.shape
+            running_reward = episode_reward if running_reward is None else running_reward * 0.99 + episode_reward * 0.01
+
+
+            # # evaluate lkx
+            # if loop % 10 == 0 and self.thread_id == 0:
+            #     self.test_phase()
+            #     print "test run"
+
+            if loop % 1000 == 0 and self.thread_id == 0:
                 save_model(self.master.sess, flags.train_dir, self.master.saver, "a3c_model",
                            global_step=self.master.global_step_val)
+
 
     def test_phase(self, episode=10, max_step=1e3):
         rewards = []
@@ -344,7 +353,7 @@ class A3CAtari(object):
         self.global_step_val = 0
 
     def shared_optimizer(self):
-        with tf.device("/gpu:%d" % flags.gpu):
+        with tf.device(flags.device):
             # optimizer
             if flags.opt == "rms":
                 optimizer = tf.train.RMSPropOptimizer(flags.learn_rate, decay=0.99, epsilon=0.1,
