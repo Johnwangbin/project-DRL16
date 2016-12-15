@@ -137,7 +137,6 @@ def main(argv):
 
     observation, reward, done, info = env.step(init_action)
 
-
     t_max = 50
 
 

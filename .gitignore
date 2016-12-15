@@ -21,7 +21,7 @@ nohup*
 # *.ps
 # *.eps
 # *.pdf
-
+*Icon*
 ## Bibliography auxiliary files (bibtex/biblatex/biber):
 *.bbl
 *.bcf

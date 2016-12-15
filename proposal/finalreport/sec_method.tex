@@ -4,7 +4,17 @@ The algorithm we used to beat the baseline is the asynchronous advantage actor-c
 
 
 \subsection{Policy Gradient}
-The objective function:
+The ultimate goal of policy-based reinforcement learning is to maximize the 
+expected cumulative rewards $\textbf{E}_{a \sim Q(a|s)}[R(s)]$, i.e. given 
+the state $s$, follow the policy $\pi$ defined by the policy network $Q(a|s)$ and
+sample the action $a$ from the probability distribution predicted by $Q(a|s)$, the 
+expected reward over that distribution is what we want to maximize. Since in 
+reinforcement learning, we won't have supervision at each step. Take Pong game 
+as a example, the meaningful reward is only obtained at the end of one episode
+and we won't know which action taken previously actually contributes to the 
+this results. Therefore, we use a fake supervision that is the actual action 
+that has been sampled and the objective function is given as follows:
+
 \begin{equation*}
 \begin{split}
 \min_{\theta}\sum_{t=1}^N R_t (-\sum_{i=1}^{n}\textbf{I}(a_i, a_t)\log(\pi(a_i|s_t; \theta))
@@ -12,14 +22,21 @@ The objective function:
 \end{equation*}
 where $N$ is the number of time step in one episode, $n$ is the number of actions
 in action space, $\textbf{I}(x, y)$ is an indicator function defined as $\textbf{I}(x, y) = 1 \text{ if } x==y \text{ else } 0$.
+$R_t$ denotes the discounted reward at time step $t$ (this reward was computed backwards after one episode finished.)
+The meaning of this objective function is that we use the cross-entropy between 
+probability ($\pi(a_i|s_t; \theta)$) and the one-hot encoder vector ($[0,1,0,0,0,0]$) represents action has been taken
+(in this example is the second action). This means that we always encourage the probability of the action 
+we taken in the time $t$. And to what extend we want to encourage it is based on the reward $R_t$ which we 
+multiply it to the objective function. 
+
 
 The architecture of policy gradient. 
 
 \begin{figure}[h!]
-\label{fig:pg_picture}
 \centering
 \includegraphics[width=0.49\textwidth]{./fig/policygradient.pdf} \\
 \caption{The architecture of policy gradient, using Pong game as an example.}
+\label{fig:pg_picture}
 \end{figure}
 
 
