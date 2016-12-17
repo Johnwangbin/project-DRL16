@@ -1,0 +1,16 @@
+%!TEX root = main.tex
+
+Our contribution in this project is summarized as follows:
+
+First, we modify the dueling Q-network and policy gradient network which are implemented by others to play games on OpenAI gym.
+
+Second, we investigate the effects of \textit{experience replay} and \textit{target Q-network} by conducting a several experiments. Experimental results show that \textit{experience replay} and \textit{target Q-network} can stabilize the training process.
+
+Third, to investigate whether different agents can transfer knowledge between each other, we implement and use \textit{Knowledge Distillation } approach. The dueling Q-network is guided by policy gradient network during training. Through experiments we found that the dueling Q-network performs worse if it is directly guided on the Q-values. 
+%
+Maybe this could be solved by adding more fully-connected layers to project $Q(s,a;\theta_{Q})$ into another space to be guided by policy network.
+%
+Due to time limitation, we did not finish the experiments to verify our ideas.
+
+%A3C
+Fourth:

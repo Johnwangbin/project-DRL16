@@ -73,13 +73,55 @@ and
 $$P^{\tau}_{Q} = softmax( \frac{a^{L+1}_{Q}} {\tau} )$$.
 
 Other hyperparameters remain the same.
-%We want to train a student network that maintains roughly the same accuracy with fewer parameters than teacher network. In other words, we want to design and train color, gray, gradient student networks to mimic the output of teacher networks.
-%We want student networks to learn the feature extraction ability of teacher networks and we do not expect students to outperform teachers. 
 
-%Hence, instead of using cross entropy, we model it as regression problem and our loss function is defined as:
-%\begin{equation}
-%\label{eq.teach_loss}
-%\mathcal{L}_{i} = \left \| f_{t}(x_{i}) - f_{s}(x_{i})  \right \| ^2_2
-%\end{equation}
-%where $f_{t}(x_{i})$ and  $f_{s}(x_{i})$ are the last layer output in teacher and student network respectively.
-.
+%
+We use a pre-trained policy gradient network which achieves about $3.0$reward to guide the dueling Q-network.
+
+
+\subsection{Experiment Results}
+
+
+\subsubsection{Experience replay and Target Q-network}
+
+In this experiment, we investigate the benefits of using \textit{experience replay} and \textit{target Q-network}
+%
+As we can see in Fig.\ref{fig:ep_target_q_result}(a), using target Q-network can reduce the oscillation during training and increase the converge speed.
+%
+In Fig.\ref{fig:ep_target_q_result}(b), we can see that even though using experience replay costs us 400 steps for accumulation, the network quickly converges after that. And the oscillation is very small.
+%
+These two experiments show that using \textit{Experience replay} and \textit{Target Q-network} can improve the training process.
+
+\begin{figure}[ht!]
+	\centering
+	\begin{tabular}{c}
+		\includegraphics[width=0.49\textwidth]{./fig/target_network_result.png} \\
+		(a) Benefit of using target network \\
+		\includegraphics[width=0.49\textwidth]{./fig/er_result.png} \\
+		(b) Benefit of using experience replay. The first 400 steps are accumulating experience through randomly sampling from environment. After that, it begins to sample from memories.\\
+	\end{tabular}
+	\caption{results of using applying experience replay and target Q-network}
+	\label{fig:ep_target_q_result}
+\end{figure}
+
+
+\subsubsection{Knowledge Distillation Result}
+
+In this experiment, we compare vanilla dueling Q-network, dueling Q-network guided on Q-values and dueling network guided on mapping of Q-values.
+
+The result is shown in Fig.\ref{fig:mimic_result}. As we can see, the original(vanilla) dueling Q-network performs the best, which means the policy gradient network fails to guide the dueling Q-network.
+%
+However, as shown in the results, dueling network guided on mapping of Q-values performs better than dueling Q-network guided on Q-values. It means that even though $Q(s,a;\theta_{Q})$ is different from $\pi(a_i|s_t;\theta_{policy})$, we can still project $Q(s,a;\theta_{Q})$ into another space where knowledge can be transfered from $\pi(a_i|s_t;\theta_{policy})$.
+\begin{figure}[h!]
+	\centering
+	\begin{tabular}{c}
+		\includegraphics[width=0.49\textwidth]{./fig/mimic_result_episode.png} \\
+		(a) Episode reward \\
+		\includegraphics[width=0.49\textwidth]{./fig/mimic_result_running.png} \\
+		(b) Running reward \\
+	\end{tabular}
+	\caption{The rewards of 10K epsiodes on three approaches: vanilla dueling Q-network, dueling Q-network guided on Q-values and dueling network guided on mapping of Q-values. Running reward is the smoothed accumulating rewards}
+	\label{fig:mimic_result}
+\end{figure}
+
+
+
