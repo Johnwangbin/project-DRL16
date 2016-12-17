@@ -37,3 +37,18 @@ As shown in Fig.\ref{fig:experience_replay}, we first sample the experiences fro
 \end{figure}
 
 \subsection{Target Network}
+To reduce the oscillation during training, we employ Target Network Strategy\cite{lillicrap2015continuous}.
+%
+Specifically, at every step of training, the target Q-values are shifting if we use the same network to produce target Q-values.
+%
+If we are using a constantly shifting target Q-values to optimize our Q-network, the updates can easily run out of control and fall in local optima. The estimates of Q-values will then be inaccurate.
+%
+The idea behind target network is that it utilizes a second network called target network which has exactly the same architecture as original one during the training procedure.
+%
+The target network is used to generate the target Q values. The target Q-values are used to compute the loss during training.
+%
+In order to mitigate that risk, the target network’s weights are fixed for a number of iterations, and periodically or updated to the original Q-networks values. 
+%
+we can achieve more stable training procedure if target network strategy is used.
+
+
