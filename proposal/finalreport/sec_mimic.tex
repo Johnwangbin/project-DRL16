@@ -1,4 +1,85 @@
 %!TEX root = main.tex
+In this section, we are interested in investigating how to transfer knowledge between different agents.
+
+Specifically, we want to see how two agents from different types of networks (one is Value-based network, the other is Policy-based network) can help each other.
+% 
+Given the dueling Q-network and policy gradient network, we are interested in using Policy gradient network to guide the Dueling Q-network.
+
 \subsection{Knowledge Distillation}
 
+
+To address this problem, we use Knowledge Distillation \cite{hinton2015distilling} technique to implement our algorithm.
+
+The central idea of using Knowledge Distillation here is to train a network (i.e., dueling Q-network) that partially imitates the outputs of policy gradient network.
+
+In \cite{hinton2015distilling}, this framework is applied to object recognition where the outputs of both teacher and student networks are softmax outputs $P_{t} = softmax(\textbf{a}^{L}_{t})$ and  $P_{s} = softmax(\textbf{a}^{L}_{s})$ 
+\begin{equation}
+P^{\tau}_{t} = softmax(\frac{\textbf{a}^{L}_{t}}{\tau} )
+\end{equation}
+
+\begin{equation}
+P^{\tau}_{s} = softmax(\frac{\textbf{a}^{L}_{s}}{\tau} )
+\end{equation}
+%
+where $\textbf{a}^{L}$ is the activation of the last layer $L$ and $\tau > 1$ is the relaxation to soften the outputs of both teacher and student networks. 
+%
+To relax the outputs of policy network, $\tau >1$ is introduced in the outputs:
+
+Based on the softmax outputs, the student network is trained to optimize the following loss function:
+\begin{equation}
+\mathcal{L} = \mathcal{H} ( \textbf{y},P_{s} ) + \lambda\mathcal{H} ( P^{\tau}_{t},P^{\tau}_{s} ) 
+\end{equation}
+where $\mathcal{H}$ is cross-entropy and $\textbf{y}$ is one hot vector of true label. $\lambda$ controls how much knowledge should be transferred from teacher. 
+ 
 \subsection{Guidance on Q-value}
+
+%
+We want to investigate whether two totally different networks have complementary information and can guide the other.
+%
+In our project, the teacher network is the policy gradient network. The student network is the dueling Q-network. The reason that we use policy gradient network to guide dueling Q-network is that policy gradient network performs better than dueling Q-network in our experiments.
+%
+So, we define our loss function as:
+\begin{equation}
+\label{equ.kd}
+\mathcal{L} = \mathbb{E}(r+\gamma \max_{a'}Q(s',a';\theta^{target}_{Q})-Q(s,a;\theta_{Q})))^2  + \lambda\mathcal{H} ( P^{\tau}_{policy},P^{\tau}_{Q} )
+\end{equation}
+
+\noindent
+where 
+$$P^{\tau}_{policy} = softmax(\frac{\pi(a_i|s_t;\theta_{policy})}{\tau})$$
+and  
+$$P^{\tau}_{Q} = softmax( \frac{Q(s,a;\theta_{Q})} {\tau} )$$.
+
+\noindent
+Specifically, $\pi(a_i|s_t;\theta_{policy})$ is the last layer logits of two networks respectively. To relax the outputs, $\tau$ is set to be 5. $\lambda$ is set te be $0.05$ to balance the loss.
+
+The idea behind Equation \ref{equ.kd} is that the optimal policy at any state usually lead to higher Q-values. Thus we want to use the $\pi(a_i|s_t;\theta_{policy})$ to guide $Q(s,a;\theta_{Q})$.
+
+\subsection{Guidance on mapping of Q-value}
+However,  $\pi(a_i|s_t;\theta_{policy})$ is different from $Q(s,a;\theta_{Q})$ semantically. Thus we also proposed another knowledge distillation method: imposing guidance on the mappings.
+%
+Specifically, we add a fully-connected layer to $Q(s,a;\theta_{Q})$ and obtain  $a^{L+1}_{Q}$.
+
+So now the loss function becomes:
+\begin{equation}
+\label{equ.kd}
+\mathcal{L} = \mathbb{E}(r+\gamma \max_{a'}Q(s',a';\theta^{target}_{Q})-Q(s,a;\theta_{Q})))^2  + \lambda\mathcal{H} ( P^{\tau}_{policy},P^{\tau}_{Q} )
+\end{equation}
+
+\noindent
+where 
+$$P^{\tau}_{policy} = softmax(\frac{\pi(a_i|s_t;\theta_{policy})}{\tau})$$
+and  
+$$P^{\tau}_{Q} = softmax( \frac{a^{L+1}_{Q}} {\tau} )$$.
+
+Other hyperparameters remain the same.
+%We want to train a student network that maintains roughly the same accuracy with fewer parameters than teacher network. In other words, we want to design and train color, gray, gradient student networks to mimic the output of teacher networks.
+%We want student networks to learn the feature extraction ability of teacher networks and we do not expect students to outperform teachers. 
+
+%Hence, instead of using cross entropy, we model it as regression problem and our loss function is defined as:
+%\begin{equation}
+%\label{eq.teach_loss}
+%\mathcal{L}_{i} = \left \| f_{t}(x_{i}) - f_{s}(x_{i})  \right \| ^2_2
+%\end{equation}
+%where $f_{t}(x_{i})$ and  $f_{s}(x_{i})$ are the last layer output in teacher and student network respectively.
+.
