@@ -51,4 +51,30 @@ In order to mitigate that risk, the target network’s weights are fixed for a n
 %
 we can achieve more stable training procedure if target network strategy is used.
 
+\subsection{Experiment Results}
+
+
+In this experiment, we investigate the benefits of using \textit{experience replay} and \textit{target Q-network}
+%
+As we can see in Fig.\ref{fig:target_network_result}, using target Q-network can reduce the oscillation during training and increase the converge speed.
+%
+In Fig.\ref{fig:er_result}, we can see that even though using experience replay costs us 400 steps for accumulation, the network quickly converges after that. And the oscillation is very small.
+%
+These two experiments show that using \textit{Experience replay} and \textit{Target Q-network} can improve the training process.
+
+
+\begin{figure}[ht!]
+	\centering
+	\includegraphics[width=0.49\textwidth]{./fig/target_network_result.png} \\
+	\caption{Benefit of using target Q-network.}
+	\label{fig:target_network_result}
+\end{figure}
+
+\begin{figure}[ht!]
+	\centering
+	\includegraphics[width=0.49\textwidth]{./fig/er_result.png} \\
+	\caption{Benefit of using experience replay.}
+	\label{fig:er_result}
+\end{figure}
+
 
