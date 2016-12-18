@@ -2,7 +2,6 @@
 
 \section{Asynchronous advantage actor-critic methods}
 \subsection{Methodology}
-
 The asynchronous advantage actor-critic (A3C) algorithm~\cite{mnih2016asynchronous}
  trains multiple agents in parallel and update shared
 target policy network and value network. 
@@ -16,9 +15,6 @@ computed and updates the target policy and value network parameters
 through the cumulated gradients in this roll-out play. Several agents
 was trained in different copy of same environments and send the updates
 to the target networks. For more details, please refer to the paper[Algorithm S3]~\cite{mnih2016asynchronous}.
-
-
-
  % It is a policy-based model-free reinforcement learning method. 
 %  This algorithm maintains a policy $\pi
 % (a_{t}|s_{t};\theta)$ and the estimate of the value function
@@ -31,7 +27,6 @@ to the target networks. For more details, please refer to the paper[Algorithm S3
 % convolutional neural network that has one softmax output for the policy $\pi
 % (a_{t}|s_{t};\theta)$ and one linear output for the value function
 % $V(s_{t};\theta_{v})$.	
-
 % The structure of policy network is shown as in Table.\ref{table.cnn_detail}:
 % \begin{table}[!ht]
 % 	\centering
@@ -50,13 +45,7 @@ to the target networks. For more details, please refer to the paper[Algorithm S3
 % 		softmax &  &  & 
 % 	\end{tabular}
 % \end{table}
-
-
-
-
 \subsection{experimental results}
-
-
 Firstly, we modified the implementation of A3C from \href{https://github.com/ppwwyyxx/tensorpack}{tensorpack} repository and
 apply this implementation to three environments to verify the effectiveness of this methods.
 The experimental results are illustrated at the following links for three environments:
@@ -67,8 +56,14 @@ The experimental results are illustrated at the following links for three enviro
 \href{https://gym.openai.com/evaluations/eval_mvXuxP13SSacO01UIhsg#reproducibility}{Pong-v0} and 
 \href{https://gym.openai.com/evaluations/eval_Gva8XrEvTQi63KOd5Gyq1Q#reproducibility}{Phoenix-v0}, respectively.
 
-Secondly, we implement our own A3C from scratch to two OpenAI gym environments, CartPole-v0 and Pong-v0.
-
+Secondly, we implement our own A3C from scratch and apply it to two OpenAI gym environments, 
+\href{https://github.com/KaixiangLin/project-DRL16/blob/master/baselines/myA3C/mainA3C.py}{CartPole-v0} and 
+\href{https://github.com/KaixiangLin/project-DRL16/blob/master/baselines/myA3C/mainA3Ccartpole.py}{Pong-v0}, link attached.
+The results is shown in Figure~\ref{fig:A3C_baselines}. As we can see in Figure~\ref{fig:A3C_baselines}, the 
+results is keeping at the lowest rewards for both of the environments. 
+Due to the limited time, instead of implementing several agents that can update the network asynchronously,
+we only consider the situation there is one agent, which reduce to a variation of actor-critic algorithm.
+This may be the main reason why our implementation didn't work in two environments.
 
 \begin{figure}[h!]
 \centering
@@ -77,7 +72,9 @@ Secondly, we implement our own A3C from scratch to two OpenAI gym environments, 
 \includegraphics[width=0.22\textwidth]{./fig/myA3C_pong_rewardsplot.png}\\
 (a) Cartpole-v0 & (b) Pong-v0  \\
 \end{tabular}
-\caption{The results of our A3C implementations.}
+\caption{The results of our A3C implementations. In (a), the green points are rewards at the end of each episode,
+the black line are running-rewards defined as the weighted mean of recent 100 episodes' rewards. When the reward is 200, 
+the game is solved. In (b), the green points are rewards at the end of each episode. When the reward is 21, the game is solved.}
 \label{fig:A3C_baselines}
 \end{figure}
 
