@@ -63,19 +63,8 @@ However,  $\pi(a_i|s_t;\theta_{policy})$ is different from $Q(s,a;\theta_{Q})$ s
 %
 Specifically, we add a fully-connected layer to $Q(s,a;\theta_{Q})$ and obtain  $a^{L+1}_{Q}$.
 
-So now the loss function becomes:
-\begin{equation}
-\begin{split}
-\mathcal{L} &= \mathbb{E}(r+\gamma \max_{a'}Q(s',a';\theta^{target}_{Q})-Q(s,a;\theta_{Q})))^2  \\
-& + \lambda\mathcal{H} ( P^{\tau}_{policy},P^{\tau}_{Q} )
-\end{split}
-\label{equ.kd}
-\end{equation}
+So here $P^{\tau}_{Q}$ becomes:
 
-\noindent
-where 
-$$P^{\tau}_{policy} = softmax(\frac{\pi(a_i|s_t;\theta_{policy})}{\tau})$$
-and  
 $$P^{\tau}_{Q} = softmax( \frac{a^{L+1}_{Q}} {\tau} )$$.
 
 \noindent
@@ -92,17 +81,27 @@ In this experiment, we compare vanilla dueling Q-network, dueling Q-network guid
 The result is shown in Fig.\ref{fig:mimic_result}. As we can see, the original(vanilla) dueling Q-network performs the best, which means the policy gradient network fails to guide the dueling Q-network.
 %
 However, as shown in the results, dueling network guided on mapping of Q-values performs better than dueling Q-network guided on Q-values. It means that even though $Q(s,a;\theta_{Q})$ is different from $\pi(a_i|s_t;\theta_{policy})$, we can still project $Q(s,a;\theta_{Q})$ into another space where knowledge can be transfered from $\pi(a_i|s_t;\theta_{policy})$.
+
+
 \begin{figure}[h!]
 	\centering
-	\begin{tabular}{c}
-		\includegraphics[width=0.49\textwidth]{./fig/mimic_result_episode.png} \\
-		(a) Episode reward \\
-		\includegraphics[width=0.49\textwidth]{./fig/mimic_result_running.png} \\
-		(b) Running reward \\
-	\end{tabular}
+	\begin{subfigure}[t]{0.25\textwidth}
+		\centering
+		\includegraphics[scale=0.35,clip=true,trim = 0mm 0mm 0mm 0mm]{./fig/mimic_result_episode.png}
+		\caption{Episode reward}
+	\end{subfigure}%
+	~ 
+	\begin{subfigure}[t]{0.25\textwidth}
+		\centering
+		\includegraphics[scale=0.35,clip=true,trim = 0mm 0mm 0mm 0mm]{./fig/mimic_result_running.png}
+		\caption{Running reward}
+	\end{subfigure}
+	\vspace{-1mm}
 	\caption{The rewards of 10K epsiodes on three approaches: vanilla dueling Q-network, dueling Q-network guided on Q-values and dueling network guided on mapping of Q-values. Running reward is the smoothed accumulating rewards}
-	\label{fig:mimic_result}
+\label{fig:mimic_result}
+	\vspace{-3mm}
 \end{figure}
+
 
 
 
