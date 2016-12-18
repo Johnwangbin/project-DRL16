@@ -40,8 +40,11 @@ In our project, the teacher network is the policy gradient network. The student 
 %
 So, we define our loss function as:
 \begin{equation}
+\begin{split}
+\mathcal{L} &= \mathbb{E}(r+\gamma \max_{a'}Q(s',a';\theta^{target}_{Q})-Q(s,a;\theta_{Q})))^2  \\
+& + \lambda\mathcal{H} ( P^{\tau}_{policy},P^{\tau}_{Q} )
+\end{split}
 \label{equ.kd}
-\mathcal{L} = \mathbb{E}(r+\gamma \max_{a'}Q(s',a';\theta^{target}_{Q})-Q(s,a;\theta_{Q})))^2  + \lambda\mathcal{H} ( P^{\tau}_{policy},P^{\tau}_{Q} )
 \end{equation}
 
 \noindent
@@ -62,8 +65,11 @@ Specifically, we add a fully-connected layer to $Q(s,a;\theta_{Q})$ and obtain  
 
 So now the loss function becomes:
 \begin{equation}
+\begin{split}
+\mathcal{L} &= \mathbb{E}(r+\gamma \max_{a'}Q(s',a';\theta^{target}_{Q})-Q(s,a;\theta_{Q})))^2  \\
+& + \lambda\mathcal{H} ( P^{\tau}_{policy},P^{\tau}_{Q} )
+\end{split}
 \label{equ.kd}
-\mathcal{L} = \mathbb{E}(r+\gamma \max_{a'}Q(s',a';\theta^{target}_{Q})-Q(s,a;\theta_{Q})))^2  + \lambda\mathcal{H} ( P^{\tau}_{policy},P^{\tau}_{Q} )
 \end{equation}
 
 \noindent
@@ -72,6 +78,7 @@ $$P^{\tau}_{policy} = softmax(\frac{\pi(a_i|s_t;\theta_{policy})}{\tau})$$
 and  
 $$P^{\tau}_{Q} = softmax( \frac{a^{L+1}_{Q}} {\tau} )$$.
 
+\noindent
 Other hyperparameters remain the same.
 
 %
