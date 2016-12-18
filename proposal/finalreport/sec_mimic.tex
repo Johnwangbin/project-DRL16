@@ -12,14 +12,14 @@ To address this problem, we use Knowledge Distillation \cite{hinton2015distillin
 
 The central idea of using Knowledge Distillation here is to train a network (i.e., dueling Q-network) that partially imitates the outputs of policy gradient network.
 
-In \cite{hinton2015distilling}, this framework is applied to object recognition where the outputs of both teacher and student networks are softmax outputs $P_{t} = softmax(\textbf{a}^{L}_{t})$ and  $P_{s} = softmax(\textbf{a}^{L}_{s})$ 
-\begin{equation}
+In \cite{hinton2015distilling}, this framework is applied to object recognition where the outputs of both teacher and student networks are softmax outputs:
+$
 P^{\tau}_{t} = softmax(\frac{\textbf{a}^{L}_{t}}{\tau} )
-\end{equation}
-
-\begin{equation}
+$
+and
+$
 P^{\tau}_{s} = softmax(\frac{\textbf{a}^{L}_{s}}{\tau} )
-\end{equation}
+$
 %
 where $\textbf{a}^{L}$ is the activation of the last layer $L$ and $\tau > 1$ is the relaxation to soften the outputs of both teacher and student networks. 
 %
@@ -71,7 +71,7 @@ $$P^{\tau}_{Q} = softmax( \frac{a^{L+1}_{Q}} {\tau} )$$.
 Other hyperparameters remain the same.
 
 %
-We use a pre-trained policy gradient network which achieves about $3.0$reward to guide the dueling Q-network.
+We use a pre-trained policy gradient network which achieves about $3.0$ reward to guide the dueling Q-network.
 
 
 \subsection{Experiment Results}
