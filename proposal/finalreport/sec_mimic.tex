@@ -44,7 +44,7 @@ So, we define our loss function as:
 \mathcal{L} &= \mathbb{E}(r+\gamma \max_{a'}Q(s',a';\theta^{target}_{Q})-Q(s,a;\theta_{Q})))^2  \\
 & + \lambda\mathcal{H} ( P^{\tau}_{policy},P^{\tau}_{Q} )
 \end{split}
-\label{equ.kd}
+\label{equ.kd1}
 \end{equation}
 
 \noindent
@@ -56,7 +56,7 @@ $$P^{\tau}_{Q} = softmax( \frac{Q(s,a;\theta_{Q})} {\tau} )$$.
 \noindent
 Specifically, $\pi(a_i|s_t;\theta_{policy})$ is the last layer logits of two networks respectively. To relax the outputs, $\tau$ is set to be 5. $\lambda$ is set te be $0.05$ to balance the loss.
 
-The idea behind Equation \ref{equ.kd} is that the optimal policy at any state usually lead to higher Q-values. Thus we want to use the $\pi(a_i|s_t;\theta_{policy})$ to guide $Q(s,a;\theta_{Q})$.
+The idea behind Equation \ref{equ.kd1} is that the optimal policy at any state usually lead to higher Q-values. Thus we want to use the $\pi(a_i|s_t;\theta_{policy})$ to guide $Q(s,a;\theta_{Q})$.
 
 \subsection{Guidance on mapping of Q-value}
 However,  $\pi(a_i|s_t;\theta_{policy})$ is different from $Q(s,a;\theta_{Q})$ semantically. Thus we also proposed another knowledge distillation method: imposing guidance on the mappings.

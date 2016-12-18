@@ -1,9 +1,6 @@
 %!TEX root = main.tex
-\subsection{A3C}
-The algorithm we used to beat the baseline is the asynchronous advantage actor-critic (A3C) algorithm proposed by Volodymyr et al.~\cite{mnih2016asynchronous}. It is a policy-based model-free reinforcement learning method. This algorithm maintains a policy $\pi (a_{t}|s_{t};\theta)$ and the estimate of the value function $V(s_{t};\theta_{v})$, where $\theta$ and $\theta_{v}$ are the parameters. These two parameters are learned by taking the gradient of $\log \pi (a_{t}|s_{t};\theta) A(s_{t},a_{t};\theta,\theta_{v})$ with respect to $\theta^{\prime}$. The update of $\pi (a_{t}|s_{t};\theta)$ and $V(s_{t};\theta_{v})$ happens either after every $t_{max}$ actions or when a terminal state is reached. Combining with the idea in deep learning, we use a convolutional neural network that has one softmax output for the policy $\pi (a_{t}|s_{t};\theta)$ and one linear output for the value function $V(s_{t};\theta_{v})$.
-
-
-\subsection{Policy Gradient}
+\section{Policy Gradient}
+\subsection{Methodology}
 The ultimate goal of policy-based reinforcement learning is to maximize the 
 expected cumulative rewards $\textbf{E}_{a \sim Q(a|s)}[R(s)]$, i.e. given 
 the state $s$, follow the policy $\pi$ defined by the policy network $Q(a|s)$ and
@@ -14,7 +11,6 @@ as a example, the meaningful reward is only obtained at the end of one episode
 and we won't know which action taken previously actually contributes to the 
 this results. Therefore, we use a fake supervision that is the actual action 
 that has been sampled and the objective function is given as follows:
-
 \begin{equation*}
 \begin{split}
 \min_{\theta}\sum_{t=1}^N R_t (-\sum_{i=1}^{n}\textbf{I}(a_i, a_t)\log(\pi(a_i|s_t; \theta))
@@ -30,7 +26,7 @@ we taken in the time $t$. And to what extend we want to encourage it is based on
 multiply it to the objective function. 
 
 
-The architecture of policy gradient. 
+The architecture of policy gradient is shown in Figure~\ref{fig:pg_picture}.
 
 \begin{figure}[h!]
 \centering
@@ -40,7 +36,7 @@ The architecture of policy gradient.
 \end{figure}
 
 
-The algorithm of policy gradient:
+The algorithm of policy gradient is shown in Alg.~\ref{alg:pseudocode Pong}
 
 \begin{algorithm}[H]
 \begin{algorithmic}[1]
@@ -58,6 +54,9 @@ The algorithm of policy gradient:
 \caption{pseudocode for Policy Gradient }
 \label{alg:pseudocode Pong}
 \end{algorithm}
+
+\subsection{Experiments-Policy Gradient}
+\input{sec_exp_pg}
 
 % The derive of objective function:
 
